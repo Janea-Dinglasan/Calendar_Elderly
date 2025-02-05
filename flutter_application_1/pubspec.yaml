@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   table_calendar: ^3.0.8
   flutter_colorpicker: ^1.0.3
+<<<<<<< HEAD
   shared_preferences: ^2.2.0
   flutter_native_splash: ^2.4.4
   image_picker: ^0.8.5+3
@@ -44,6 +45,8 @@ dependencies:
   file_picker: ^8.3.1
   html: ^0.15.5
 
+=======
+>>>>>>> 00e71dc1e982c53e6caa7e900d347355895d2e88
 
 dev_dependencies:
   flutter_test:
@@ -97,6 +100,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+<<<<<<< HEAD
 flutter_native_splash:
   color: "#ffffff"  # Background color (change as needed)
   image: assets/logo.png  # Path to your logo
@@ -108,3 +112,5 @@ flutter_native_splash:
   assets:
     - assets/logo.png
 
+=======
+>>>>>>> 00e71dc1e982c53e6caa7e900d347355895d2e88
