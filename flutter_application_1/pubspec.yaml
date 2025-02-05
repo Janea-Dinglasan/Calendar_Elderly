@@ -37,6 +37,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   table_calendar: ^3.0.8
   flutter_colorpicker: ^1.0.3
+  shared_preferences: ^2.2.0
+  flutter_native_splash: ^2.4.4
+  image_picker: ^0.8.5+3
+  permission_handler: ^10.0.0
+  file_picker: ^8.3.1
+  html: ^0.15.5
+
 
 dev_dependencies:
   flutter_test:
@@ -90,3 +97,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_native_splash:
+  color: "#ffffff"  # Background color (change as needed)
+  image: assets/logo.png  # Path to your logo
+  android: true
+  ios: true
+  fullscreen: true  # Makes it full screen
+
+  flutter:
+  assets:
+    - assets/logo.png
+

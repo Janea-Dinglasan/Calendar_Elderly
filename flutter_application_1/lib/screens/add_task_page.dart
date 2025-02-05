@@ -1,37 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AddTaskPage extends StatefulWidget {
   final Function(DateTime, Map<String, dynamic>) onAddTask;
+  final DateTime selectedDate;
 
-
-  AddTaskPage({required this.onAddTask});
-
+  AddTaskPage({required this.onAddTask, required this.selectedDate});
 
   @override
   _AddTaskPageState createState() => _AddTaskPageState();
 }
 
-
-
-
-
-
 class _AddTaskPageState extends State<AddTaskPage> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
-  TimeOfDay? _startTime;
-  TimeOfDay? _endTime;
   DateTime? _selectedDate;
   bool _isAllDay = false;
   bool _repeatEveryday = false;
-  bool _isNotificationEnabled = false;  // New boolean for notification
-  String _selectedCategory = 'Health';  // Default category
+  String _selectedCategory = 'Health';
+  String _taskStatus = 'Pending'; // New task status
 
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
 
-  // Categories list
-  List<String> categories = ['Health', 'Family', 'Personal', 'Urgent'];
-
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.selectedDate;
+  }
 
   @override
   void dispose() {
@@ -41,34 +38,29 @@ class _AddTaskPageState extends State<AddTaskPage> {
     super.dispose();
   }
 
-
   Future<void> _pickDate() async {
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate!,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
 
-
-    if (pickedDate != null && pickedDate != _selectedDate) {
+    if (pickedDate != null) {
       setState(() {
         _selectedDate = pickedDate;
       });
     }
   }
 
-
-  Future<void> _pickTime({required bool isStartTime}) async {
-    final pickedTime = await showTimePicker(
+  Future<void> _pickTime(bool isStart) async {
+    TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
-
-
     if (pickedTime != null) {
       setState(() {
-        if (isStartTime) {
+        if (isStart) {
           _startTime = pickedTime;
         } else {
           _endTime = pickedTime;
@@ -77,289 +69,210 @@ class _AddTaskPageState extends State<AddTaskPage> {
     }
   }
 
-
-  // Custom designed category picker
-  Widget _buildCategoryDropdown() {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Select Category'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: categories.map((category) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = category;
-                      });
-                      Navigator.of(context).pop();
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Text(
-                        category,
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            );
-          },
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.category, color: Colors.deepPurple),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _selectedCategory,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            Icon(Icons.arrow_drop_down, color: Colors.deepPurple),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildPicker({required String label, required IconData icon, required VoidCallback onTap, String? value}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.deepPurple),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                value ?? label,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: value == null ? Colors.grey : Colors.black,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Add Task",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text("Add Task", style: TextStyle(color: Colors.white, fontSize: 20)),
         backgroundColor: Colors.deepPurple,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SingleChildScrollView( // Wrap the body with SingleChildScrollView
+      body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          elevation: 5,
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Select Category",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                _buildCategoryDropdown(), // Styled category dropdown here
-                SizedBox(height: 20),
-                Text(
-                  "Select Date",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                _buildPicker(
-                  label: 'No date selected',
-                  icon: Icons.calendar_today,
-                  onTap: _pickDate,
-                  value: _selectedDate == null ? null : '${_selectedDate!.toLocal()}'.split(' ')[0],
-                ),
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildPicker(
-                        label: 'Start Time',
-                        icon: Icons.access_time,
-                        onTap: () => _pickTime(isStartTime: true),
-                        value: _startTime?.format(context),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: _buildPicker(
-                        label: 'End Time',
-                        icon: Icons.access_time,
-                        onTap: () => _pickTime(isStartTime: false),
-                        value: _endTime?.format(context),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _isAllDay,
-                          onChanged: (value) {
-                            setState(() {
-                              _isAllDay = value!;
-                            });
-                          },
-                        ),
-                        Text("All Day"),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _repeatEveryday,
-                          onChanged: (value) {
-                            setState(() {
-                              _repeatEveryday = value!;
-                            });
-                          },
-                        ),
-                        Text("Repeat Everyday"),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: _locationController,
-                  decoration: InputDecoration(
-                    labelText: 'Add Location',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTextField(_titleController, 'Task Title *', Icons.title),
+              SizedBox(height: 15),
+              _buildDatePicker(),
+              SizedBox(height: 15),
+              _buildTextField(_locationController, 'Location', Icons.location_on),
+              SizedBox(height: 15),
+              _buildTextField(_descriptionController, 'Description', Icons.description),
+              SizedBox(height: 15),
+              _buildCheckbox('All Day', _isAllDay, (value) {
+                setState(() {
+                  _isAllDay = value!;
+                });
+              }),
+              _buildCheckbox('Repeat Everyday', _repeatEveryday, (value) {
+                setState(() {
+                  _repeatEveryday = value!;
+                });
+              }),
+              SizedBox(height: 15),
+              _buildCategoryDropdown(),
+              SizedBox(height: 15),
+              _buildTaskStatusDropdown(),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _pickTime(true),
+                    child: Text("Start Time"),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
                   ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Task Title *',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  SizedBox(width: 10),
+                  Text(
+                    _startTime != null ? _startTime!.format(context) : 'Select Time',
+                    style: TextStyle(fontSize: 16),
                   ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: _descriptionController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    labelText: 'Task Description (optional)',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _pickTime(false),
+                    child: Text("End Time"),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
                   ),
+                  SizedBox(width: 10),
+                  Text(
+                    _endTime != null ? _endTime!.format(context) : 'Select Time',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _addTask,
+                child: Text("Add Task", style: TextStyle(fontSize: 16, color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    Text("Enable Notification:"),
-                    Switch(
-                      value: _isNotificationEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          _isNotificationEnabled = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        _titleController.clear();
-                        _descriptionController.clear();
-                        _locationController.clear();
-                        Navigator.pop(context);
-                      },
-                      child: Text("Cancel"),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 243, 243, 243)),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_titleController.text.isNotEmpty && _selectedDate != null) {
-                          if (_endTime != null && _startTime != null &&
-                              _endTime!.hour * 60 + _endTime!.minute <=
-                                  _startTime!.hour * 60 + _startTime!.minute) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("End Time must be after Start Time")),
-                            );
-                            return;
-                          }
-                          final task = {
-                            'title': _titleController.text,
-                            'description': _descriptionController.text,
-                            'location': _locationController.text,
-                            'category': _selectedCategory,  // Include category
-                            'startTime': _startTime?.format(context),
-                            'endTime': _endTime?.format(context),
-                            'isAllDay': _isAllDay,
-                            'repeatEveryday': _repeatEveryday,
-                            'isNotificationEnabled': _isNotificationEnabled,  // Include notification status
-                          };
-                          widget.onAddTask(_selectedDate!, task);
-                          _titleController.clear();
-                          _descriptionController.clear();
-                          _locationController.clear();
-                          Navigator.pop(context);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Please enter a title and select a date")),
-                          );
-                        }
-                      },
-                      child: Text("Add Task"),
-                    ),
-                  ],
-                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.deepPurple),
+        border: OutlineInputBorder(),
+      ),
+      style: TextStyle(fontSize: 16),
+    );
+  }
+
+  Widget _buildDatePicker() {
+    final formattedDate = DateFormat('MMM dd, yyyy').format(_selectedDate!);
+    return GestureDetector(
+      onTap: _pickDate,
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, color: Colors.deepPurple),
+            SizedBox(width: 10),
+            Text(
+              formattedDate,
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCheckbox(String label, bool value, Function(bool?) onChanged) {
+    return Row(
+      children: [
+        Checkbox(
+          value: value,
+          onChanged: onChanged,
+          activeColor: Colors.deepPurple,
+        ),
+        Text(label, style: TextStyle(fontSize: 16)),
+      ],
+    );
+  }
+
+  Widget _buildCategoryDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedCategory,
+      onChanged: (String? newValue) {
+        setState(() {
+          _selectedCategory = newValue!;
+        });
+      },
+      items: ['Health', 'Work', 'Personal', 'Other']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      decoration: InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
+    );
+  }
+
+  Widget _buildTaskStatusDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _taskStatus,
+      onChanged: (String? newValue) {
+        setState(() {
+          _taskStatus = newValue!;
+        });
+      },
+      items: ['Pending', 'Completed']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      decoration: InputDecoration(labelText: 'Task Status', border: OutlineInputBorder()),
+    );
+  }
+
+  void _addTask() {
+    if (_titleController.text.isEmpty || _selectedDate == null || _startTime == null || _endTime == null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Required Fields Missing'),
+            content: Text('Please fill in the task title, date, start time, and end time to add a task.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      final task = {
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'location': _locationController.text,
+        'isAllDay': _isAllDay,
+        'repeatEveryday': _repeatEveryday,
+        'category': _selectedCategory,
+        'status': _taskStatus,
+        'startTime': _startTime?.format(context),
+        'endTime': _endTime?.format(context),
+      };
+      widget.onAddTask(_selectedDate!, task);
+      Navigator.pop(context);
+    }
   }
 }
